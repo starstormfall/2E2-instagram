@@ -24,6 +24,7 @@ export default class Composer extends React.Component {
       fileInputFile: null,
       fileInputValue: "",
       captionInputValue: "",
+      imgSrc: "",
     };
   }
 
@@ -48,6 +49,7 @@ export default class Composer extends React.Component {
           caption: this.state.captionInputValue,
           likesCount: 0,
           comments: [],
+          postedBy: this.props.postedBy,
         });
 
         this.setState({
@@ -66,12 +68,14 @@ export default class Composer extends React.Component {
       <div>
         <Form onSubmit={this.handleUpload}>
           <Form.Control
+            ref="file"
             type="file"
             value={this.state.fileInputValue}
             onChange={(e) => {
               this.setState({
                 fileInputFile: e.target.files[0],
                 fileInputValue: e.target.value,
+                imgSrc: URL.createObjectURL(e.target.files[0]),
               });
               console.log(this.state.fileInputValue);
             }}
@@ -92,6 +96,7 @@ export default class Composer extends React.Component {
             />
             <label htmlFor="floatingCaption">Add caption here!</label>
           </Form.Floating>
+          <img alt="" src={this.state.imgSrc} />
           <Button variant="primary" type="submit" value="Upload">
             Upload
           </Button>

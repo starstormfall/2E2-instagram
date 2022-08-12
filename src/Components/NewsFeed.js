@@ -26,7 +26,7 @@ export default class NewsFeed extends React.Component {
     // When Firebase changes, update local state, which will update local UI
     this.state = {
       posts: [],
-      likeButtonStatus: {},
+      likeButtons: {},
       comment: "",
     };
   }
@@ -60,14 +60,15 @@ export default class NewsFeed extends React.Component {
     let currentLikesCount = this.state.posts[index].val.likesCount;
     // unnecessary to use get here because can just update the values with this.state.posts ==> this will result in excessive api calls each time someone likes/unlikes
 
-    if (!(postId in this.state.likeButtonStatus) || likeButtonStatus) {
-      update(postRef, { likesCount: currentLikesCount++ });
+    if (likeButtonStatus) {
+      currentLikesCount++;
     } else {
-      update(postRef, { likesCount: currentLikesCount-- });
+      currentLikesCount--;
     }
 
+    update(postRef, { likesCount: currentLikesCount });
     this.setState((state) => {
-      state.likeButtonStatus[postId] = likeButtonStatus;
+      state.likeButtons[postId] = likeButtonStatus;
       state.posts[index].val.likesCount = currentLikesCount;
       return state;
     });
@@ -111,10 +112,15 @@ export default class NewsFeed extends React.Component {
     const postCards = this.state.posts.map((post, index) => {
       return (
         <Card key={post.key} style={{ width: "50%" }}>
-          <Card.Text className="text-dark">{post.val.caption}</Card.Text>
+          <Card.Text className="text-dark">{post.val.timestamp}</Card.Text>
+          <Card.Text className="text-dark">
+            posted by:
+            <br />
+            {post.val.postedBy}
+          </Card.Text>
           <Card.Img variant="top" src={post.val.imageURL} />
           <Card.Body>
-            <Card.Title className="text-dark">{post.val.timestamp}</Card.Title>
+            <Card.Title className="text-dark">{post.val.caption}</Card.Title>
             <label>
               <input
                 id={post.key}
@@ -169,7 +175,7 @@ export default class NewsFeed extends React.Component {
 
     return (
       <div>
-        <h2>Hi {this.props.loggedInUser}! Here's Your News Feed</h2>
+        <h2>Hi {this.props.currentUser}! Here's Your News Feed</h2>
         <Container className="gap-3 d-flex justify-content-md-center">
           {postCards}
         </Container>
