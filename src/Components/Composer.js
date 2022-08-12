@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { push, ref as databaseRef, set } from "firebase/database";
 import {
   getDownloadURL,
@@ -8,35 +8,27 @@ import {
 import { database, storage } from "../DB/firebase";
 
 import Form from "react-bootstrap/Form";
-import FloatingLabel from "react-bootstrap/FloatingLabel";
 import Button from "react-bootstrap/Button";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const POSTS_FOLDER_NAME = "posts";
 const IMAGES_FOLDER_NAME = "images";
 
-export default class Composer extends React.Component {
-  constructor(props) {
-    super(props);
-    // Initialise empty messages array in state to keep local state in sync with Firebase
-    // When Firebase changes, update local state, which will update local UI
-    this.state = {
-      fileInputFile: null,
-      fileInputValue: "",
-      captionInputValue: "",
-      imgSrc: "",
-    };
-  }
+const Composer = (props) => {
+  const [fileInputFile, setFileInputFile] = useState(null);
+  const [fileInputValue, setFileInputValue] = useState("");
+  const [captionInputValue, setCaptionInputValue] = useState("");
+  const [imgSrc, setImgSrc] = useState("");
 
-  handleUpload = (event) => {
+  const handleUpload = (event) => {
     event.preventDefault();
 
     // creating reference to storage and filepath
     const imagesRef = storageRef(
       storage,
-      `${IMAGES_FOLDER_NAME}/${this.state.fileInputFile.name}`
+      `${IMAGES_FOLDER_NAME}/${fileInputFile.name}`
     );
-    uploadBytes(imagesRef, this.state.fileInputFile).then(() => {
+    uploadBytes(imagesRef, fileInputFile).then(() => {
       getDownloadURL(imagesRef).then((url) => {
         // creating reference to realtime database and filepath
         const postListRef = databaseRef(database, POSTS_FOLDER_NAME);
@@ -46,64 +38,53 @@ export default class Composer extends React.Component {
         set(newPostRef, {
           timestamp: new Date().toLocaleString(),
           imageURL: url,
-          caption: this.state.captionInputValue,
+          caption: captionInputValue,
           likesCount: 0,
           comments: [],
-          postedBy: this.props.postedBy,
+          postedBy: props.postedBy,
         });
 
-        this.setState({
-          fileInputFile: null,
-          fileInputValue: "",
-          captionInputValue: "",
-        });
+        setFileInputFile(null);
+        setFileInputValue("");
+        setCaptionInputValue("");
       });
     });
   };
+  return (
+    <div>
+      <Form onSubmit={handleUpload}>
+        <Form.Control
+          type="file"
+          value={fileInputValue}
+          onChange={(e) => {
+            setFileInputFile(e.target.files[0]);
+            setFileInputValue(e.target.value);
+            setImgSrc(URL.createObjectURL(e.target.files[0]));
+          }}
+        />
 
-  render() {
-    // Convert messages in state to message JSX elements to render
-
-    return (
-      <div>
-        <Form onSubmit={this.handleUpload}>
+        <Form.Floating className="mb-3">
           <Form.Control
-            ref="file"
-            type="file"
-            value={this.state.fileInputValue}
-            onChange={(e) => {
-              this.setState({
-                fileInputFile: e.target.files[0],
-                fileInputValue: e.target.value,
-                imgSrc: URL.createObjectURL(e.target.files[0]),
-              });
-              console.log(this.state.fileInputValue);
-            }}
+            id="floatingCaption"
+            as="textarea"
+            name="caption"
+            style={{ height: "150px" }}
+            maxLength="140"
+            placeholder="caption"
+            value={captionInputValue}
+            onChange={(e) => setCaptionInputValue(e.target.value)}
           />
+          <label htmlFor="floatingCaption">Add caption here!</label>
+        </Form.Floating>
+        <img alt="" src={imgSrc} />
+        <Button variant="primary" type="submit" value="Upload">
+          Upload
+        </Button>
 
-          <Form.Floating className="mb-3">
-            <Form.Control
-              id="floatingCaption"
-              as="textarea"
-              name="caption"
-              style={{ height: "150px" }}
-              maxLength="140"
-              placeholder="caption"
-              value={this.state.captionInputValue}
-              onChange={(e) =>
-                this.setState({ captionInputValue: e.target.value })
-              }
-            />
-            <label htmlFor="floatingCaption">Add caption here!</label>
-          </Form.Floating>
-          <img alt="" src={this.state.imgSrc} />
-          <Button variant="primary" type="submit" value="Upload">
-            Upload
-          </Button>
+        <br />
+      </Form>
+    </div>
+  );
+};
 
-          <br />
-        </Form>
-      </div>
-    );
-  }
-}
+export default Composer;

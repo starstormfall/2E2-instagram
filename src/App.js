@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDom from "react-dom/client";
 import "./App.css";
 
 import Composer from "./Components/Composer";
@@ -20,7 +21,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
 
-const App = (props) => {
+const App = () => {
   const [loggedInUser, setLoggedInUser] = useState("");
   const [showPublicFeed, setShowPublicFeed] = useState(true);
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -60,7 +61,7 @@ const App = (props) => {
   const signout = (e) => {
     signOut(auth)
       .then(() => {
-        setShowPublicFeed(false);
+        setShowPublicFeed(true);
         setLoggedInUser("");
       })
       .catch((error) => {
@@ -75,7 +76,7 @@ const App = (props) => {
           <Container>
             <Navbar.Brand>ROCKETGRAM</Navbar.Brand>
             <Nav variant="pills">
-              {{ loggedInUser } ? (
+              {loggedInUser ? (
                 <>
                   <Nav.Item>
                     <Nav.Link onClick={() => setShowUploadForm(true)}>
@@ -139,4 +140,4 @@ const App = (props) => {
   );
 };
 
-export default App();
+export default App;
